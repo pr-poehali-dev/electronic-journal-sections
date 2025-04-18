@@ -9,6 +9,7 @@ interface JournalContextType {
   removeStudent: (id: string) => void;
   updateAttendance: (studentId: string, sectionId: SectionType, date: string, present: boolean) => void;
   updateNote: (studentId: string, sectionId: SectionType, note: string) => void;
+  updateGrade: (studentId: string, sectionId: SectionType, date: string, grade: number) => void;
   updateSection: (id: SectionType, data: Partial<Section>) => void;
 }
 
@@ -21,6 +22,7 @@ export const JournalProvider = ({ children }: { children: ReactNode }) => {
     const newStudent: Student = {
       ...student,
       id: Date.now().toString(),
+      grades: student.grades || {},
     };
     
     setJournal(prev => ({
@@ -57,6 +59,27 @@ export const JournalProvider = ({ children }: { children: ReactNode }) => {
               [sectionId]: {
                 ...(student.attendance[sectionId] || {}),
                 [date]: present
+              }
+            }
+          };
+        }
+        return student;
+      })
+    }));
+  };
+
+  const updateGrade = (studentId: string, sectionId: SectionType, date: string, grade: number) => {
+    setJournal(prev => ({
+      ...prev,
+      students: prev.students.map(student => {
+        if (student.id === studentId) {
+          return {
+            ...student,
+            grades: {
+              ...student.grades,
+              [sectionId]: {
+                ...(student.grades?.[sectionId] || {}),
+                [date]: grade
               }
             }
           };
@@ -105,6 +128,7 @@ export const JournalProvider = ({ children }: { children: ReactNode }) => {
       removeStudent,
       updateAttendance,
       updateNote,
+      updateGrade,
       updateSection
     }}>
       {children}

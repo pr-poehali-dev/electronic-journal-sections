@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Student, SectionType } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 interface StudentFormProps {
   open: boolean;
@@ -14,8 +15,14 @@ interface StudentFormProps {
 }
 
 const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
+  const { currentUser } = useAuth();
   const [name, setName] = useState(student?.name || '');
+  const [email, setEmail] = useState(student?.email || '');
+  const [password, setPassword] = useState('');
   const [sections, setSections] = useState<string[]>(student?.sections || []);
+
+  const isTeacher = currentUser?.role === 'teacher';
+  const teacherSections = currentUser?.sections || [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,9 +30,12 @@ const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
     const updatedStudent = {
       ...student && { id: student.id },
       name,
+      email,
+      ...(password && { password }),
       sections,
       attendance: student?.attendance || {},
-      notes: student?.notes || {}
+      notes: student?.notes || {},
+      grades: student?.grades || {}
     };
     
     onSave(updatedStudent);
@@ -60,6 +70,36 @@ const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
                 required
               />
             </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="col-span-3"
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Пароль
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="col-span-3"
+                placeholder={student ? "Оставьте пустым, чтобы не менять" : ""}
+                {...(!student && { required: true })}
+              />
+            </div>
+            
             <div className="grid grid-cols-4 items-start gap-4">
               <Label className="text-right pt-2">Секции</Label>
               <div className="col-span-3 space-y-2">
@@ -68,6 +108,7 @@ const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
                     id="acting" 
                     checked={sections.includes('acting')}
                     onCheckedChange={() => handleSectionToggle('acting')}
+                    disabled={isTeacher && !teacherSections.includes('acting')}
                   />
                   <Label htmlFor="acting">Актёрское мастерство</Label>
                 </div>
@@ -76,6 +117,7 @@ const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
                     id="singing" 
                     checked={sections.includes('singing')}
                     onCheckedChange={() => handleSectionToggle('singing')}
+                    disabled={isTeacher && !teacherSections.includes('singing')}
                   />
                   <Label htmlFor="singing">Пение</Label>
                 </div>
@@ -84,6 +126,7 @@ const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
                     id="speech" 
                     checked={sections.includes('speech')}
                     onCheckedChange={() => handleSectionToggle('speech')}
+                    disabled={isTeacher && !teacherSections.includes('speech')}
                   />
                   <Label htmlFor="speech">Сценическая речь</Label>
                 </div>
@@ -92,6 +135,7 @@ const StudentForm = ({ open, onClose, onSave, student }: StudentFormProps) => {
                     id="dancing" 
                     checked={sections.includes('dancing')}
                     onCheckedChange={() => handleSectionToggle('dancing')}
+                    disabled={isTeacher && !teacherSections.includes('dancing')}
                   />
                   <Label htmlFor="dancing">Танец</Label>
                 </div>
